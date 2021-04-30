@@ -1,10 +1,11 @@
-# PyLgNetcast
+# Python LG Netcast
 
 A Python 3 library and command line tool to control LG Smart TV running NetCast 3.0 (LG Smart TV models released in 2012) and NetCast 4.0 (LG Smart TV models released in 2013) via TCP/IP.
 
+This library was forked from [pylgnetcast](https://github.com/wokar/pylgnetcast) and is primarily being developed with the intent of supporting home-assistant.
+
 ## Dependencies
 
-pylgnetcast requires:
  * Python 3
  * [requests](https://pypi.python.org/pypi/requests) package.
 
