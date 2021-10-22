@@ -10,6 +10,7 @@ https://github.com/ubaransel/lgcommander
 """
 import logging
 import requests
+import time
 from xml.etree import ElementTree
 
 _LOGGER = logging.getLogger(__name__)
@@ -161,6 +162,27 @@ class LgNetCastClient(object):
             for data in tree.iter('data'):
                 data_list.append(data)
             return data_list
+
+    def get_volume(self):
+        volume_info = self.query_data("volume_info")
+        if volume_info:
+            volume_info = volume_info[0]
+            volume = float(volume_info.find("level").text)
+            muted = volume_info.find("mute").text == "true"
+            return volume, muted
+
+    def set_volume(self, volume):
+        current_volume, _ = self.get_volume()
+        volume_difference = volume - current_volume
+        command = LG_COMMAND.VOLUME_UP if volume_difference > 0 else LG_COMMAND.VOLUME_DOWN
+        for i in range(abs(volume_difference)):
+            self.send_command(command)
+            time.sleep(
+                0.35
+            )  # tv jumps over volume steps after quick consecutive presses
+        current_volume, _ = self.get_volume()
+        if current_volume != volume:
+            self.set_volume(volume)
 
     def _get_session_id(self):
         """Get the session key for the TV connection.
