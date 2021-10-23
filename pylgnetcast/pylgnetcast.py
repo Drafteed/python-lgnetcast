@@ -175,7 +175,7 @@ class LgNetCastClient(object):
         current_volume, _ = self.get_volume()
         volume_difference = volume - current_volume
         command = LG_COMMAND.VOLUME_UP if volume_difference > 0 else LG_COMMAND.VOLUME_DOWN
-        for i in range(abs(volume_difference)):
+        for i in range(abs(int(volume_difference))):
             self.send_command(command)
             time.sleep(
                 0.35
