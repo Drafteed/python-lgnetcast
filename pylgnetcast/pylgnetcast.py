@@ -15,16 +15,22 @@ from xml.etree import ElementTree
 
 _LOGGER = logging.getLogger(__name__)
 
-__all__ = ['LgNetCastClient', 'LG_COMMAND', 'LG_QUERY', 'LgNetCastError',
-           'AccessTokenError', 'SessionIdError']
+__all__ = [
+    "LgNetCastClient",
+    "LG_COMMAND",
+    "LG_QUERY",
+    "LgNetCastError",
+    "AccessTokenError",
+    "SessionIdError",
+]
 
 
 # LG TV handler
-LG_HANDLE_KEY_INPUT = 'HandleKeyInput'
-LG_HANDLE_MOUSE_MOVE = 'HandleTouchMove'
-LG_HANDLE_MOUSE_CLICK = 'HandleTouchClick'
-LG_HANDLE_TOUCH_WHEEL = 'HandleTouchWheel'
-LG_HANDLE_CHANNEL_CHANGE = 'HandleChannelChange'
+LG_HANDLE_KEY_INPUT = "HandleKeyInput"
+LG_HANDLE_MOUSE_MOVE = "HandleTouchMove"
+LG_HANDLE_MOUSE_CLICK = "HandleTouchClick"
+LG_HANDLE_TOUCH_WHEEL = "HandleTouchWheel"
+LG_HANDLE_CHANNEL_CHANGE = "HandleChannelChange"
 
 DEFAULT_PORT = 8080
 DEFAULT_TIMEOUT = 3
@@ -32,6 +38,7 @@ DEFAULT_TIMEOUT = 3
 
 class LG_COMMAND(object):
     """LG TV remote control commands."""
+
     POWER = 1
     NUMBER_0 = 2
     NUMBER_1 = 3
@@ -100,32 +107,34 @@ class LG_COMMAND(object):
 
 class LG_QUERY(object):
     """LG TV data queries."""
-    CUR_CHANNEL = 'cur_channel'
-    CHANNEL_LIST = 'channel_list'
-    CONTEXT_UI = 'context_ui'
-    VOLUME_INFO = 'volume_info'
-    SCREEN_IMAGE = 'screen_image'
-    IS_3D = 'is_3d'
+
+    CUR_CHANNEL = "cur_channel"
+    CHANNEL_LIST = "channel_list"
+    CONTEXT_UI = "context_ui"
+    VOLUME_INFO = "volume_info"
+    SCREEN_IMAGE = "screen_image"
+    IS_3D = "is_3d"
 
 
 class LG_PROTOCOL(object):
     """Supported LG TV protcols."""
-    HDCP = 'hdcp'
-    ROAP = 'roap'
+
+    HDCP = "hdcp"
+    ROAP = "roap"
 
 
 class LgNetCastClient(object):
     """LG NetCast TV client using the ROAP or HDCP protocol."""
 
-    HEADER = {'Content-Type': 'application/atom+xml'}
-    XML = '<?xml version=\"1.0\" encoding=\"utf-8\"?>'
-    KEY = XML + '<auth><type>AuthKeyReq</type></auth>'
-    AUTH = XML + '<auth><type>%s</type><value>%s</value></auth>'
-    COMMAND = XML + '<command><session>%s</session><type>%s</type>%s</command>'
+    HEADER = {"Content-Type": "application/atom+xml"}
+    XML = '<?xml version="1.0" encoding="utf-8"?>'
+    KEY = XML + "<auth><type>AuthKeyReq</type></auth>"
+    AUTH = XML + "<auth><type>%s</type><value>%s</value></auth>"
+    COMMAND = XML + "<command><session>%s</session><type>%s</type>%s</command>"
 
     def __init__(self, host, access_token, protocol=LG_PROTOCOL.ROAP):
         """Initialize the LG TV client."""
-        self.url = 'http://%s:%s/%s/api/' % (host, DEFAULT_PORT, protocol)
+        self.url = "http://%s:%s/%s/api/" % (host, DEFAULT_PORT, protocol)
         self.access_token = access_token
         self.protocol = protocol
         self._session = None
@@ -141,25 +150,30 @@ class LgNetCastClient(object):
 
     def send_command(self, command):
         """Send remote control commands to the TV."""
-        message = self.COMMAND % (self._session, LG_HANDLE_KEY_INPUT,
-                                  '<value>%s</value>' % command)
-        self._send_to_tv('command', message)
+        message = self.COMMAND % (
+            self._session,
+            LG_HANDLE_KEY_INPUT,
+            "<value>%s</value>" % command,
+        )
+        self._send_to_tv("command", message)
 
     def change_channel(self, channel):
         """Send change channel command to the TV."""
-        message = self.COMMAND % (self._session, LG_HANDLE_CHANNEL_CHANGE,
-                                  ElementTree.tostring(channel,
-                                                       encoding='utf-8'))
-        self._send_to_tv('command', message)
+        message = self.COMMAND % (
+            self._session,
+            LG_HANDLE_CHANNEL_CHANGE,
+            ElementTree.tostring(channel, encoding="utf-8"),
+        )
+        self._send_to_tv("command", message)
 
     def query_data(self, query):
         """Query status information from the TV."""
-        response = self._send_to_tv('data', payload={'target': query})
+        response = self._send_to_tv("data", payload={"target": query})
         if response.status_code == requests.codes.ok:
             data = response.text
-            tree = ElementTree.fromstring(data.encode('utf-8'))
+            tree = ElementTree.fromstring(data.encode("utf-8"))
             data_list = []
-            for data in tree.iter('data'):
+            for data in tree.iter("data"):
                 data_list.append(data)
             return data_list
 
@@ -182,7 +196,11 @@ class LgNetCastClient(object):
         """Simulate setting a specific volume level based on the difference."""
         volume_difference = volume - current_volume
         if volume_difference != 0:
-            command = LG_COMMAND.VOLUME_UP if volume_difference > 0 else LG_COMMAND.VOLUME_DOWN
+            command = (
+                LG_COMMAND.VOLUME_UP
+                if volume_difference > 0
+                else LG_COMMAND.VOLUME_DOWN
+            )
             for _ in range(abs(int(volume_difference))):
                 self.send_command(command)
                 time.sleep(0.35)
@@ -195,32 +213,33 @@ class LgNetCastClient(object):
         """
         if not self.access_token:
             self._display_pair_key()
-            raise AccessTokenError(
-                'No access token specified to create session.')
-        message = self.AUTH % ('AuthReq', self.access_token)
-        response = self._send_to_tv('auth', message)
+            raise AccessTokenError("No access token specified to create session.")
+        message = self.AUTH % ("AuthReq", self.access_token)
+        response = self._send_to_tv("auth", message)
         if response.status_code != requests.codes.ok:
-            raise SessionIdError('Can not get session id from TV.')
+            raise SessionIdError("Can not get session id from TV.")
         data = response.text
         tree = ElementTree.XML(data)
-        session = tree.find('session').text
+        session = tree.find("session").text
         return session
 
     def _display_pair_key(self):
         """Send message to display the pair key on TV screen."""
-        self._send_to_tv('auth', self.KEY)
+        self._send_to_tv("auth", self.KEY)
 
     def _send_to_tv(self, message_type, message=None, payload=None):
         """Send message of given type to the tv."""
-        if message_type != 'command' and self.protocol == LG_PROTOCOL.HDCP:
-            message_type = 'dtv_wifirc'
-        url = '%s%s' % (self.url, message_type)
+        if message_type != "command" and self.protocol == LG_PROTOCOL.HDCP:
+            message_type = "dtv_wifirc"
+        url = "%s%s" % (self.url, message_type)
         if message:
-            response = requests.post(url, data=message, headers=self.HEADER,
-                                     timeout=DEFAULT_TIMEOUT)
+            response = requests.post(
+                url, data=message, headers=self.HEADER, timeout=DEFAULT_TIMEOUT
+            )
         else:
-            response = requests.get(url, params=payload, headers=self.HEADER,
-                                    timeout=DEFAULT_TIMEOUT)
+            response = requests.get(
+                url, params=payload, headers=self.HEADER, timeout=DEFAULT_TIMEOUT
+            )
         return response
 
 
