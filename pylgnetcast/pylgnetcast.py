@@ -164,6 +164,7 @@ class LgNetCastClient(object):
             return data_list
 
     def get_volume(self):
+        """Get volume info from the TV."""
         volume_info = self.query_data("volume_info")
         if volume_info:
             volume_info = volume_info[0]
@@ -172,17 +173,19 @@ class LgNetCastClient(object):
             return volume, muted
 
     def set_volume(self, volume):
-        current_volume, _ = self.get_volume()
+        """Try to set a specific volume level."""
+        for _ in range(2):
+            current_volume, _ = self.get_volume()
+            self._set_volume_diff(volume, current_volume)
+
+    def _set_volume_diff(self, volume, current_volume):
+        """Simulate setting a specific volume level based on the difference."""
         volume_difference = volume - current_volume
-        command = LG_COMMAND.VOLUME_UP if volume_difference > 0 else LG_COMMAND.VOLUME_DOWN
-        for i in range(abs(int(volume_difference))):
-            self.send_command(command)
-            time.sleep(
-                0.35
-            )  # tv jumps over volume steps after quick consecutive presses
-        current_volume, _ = self.get_volume()
-        if current_volume != volume:
-            self.set_volume(volume)
+        if volume_difference != 0:
+            command = LG_COMMAND.VOLUME_UP if volume_difference > 0 else LG_COMMAND.VOLUME_DOWN
+            for _ in range(abs(int(volume_difference))):
+                self.send_command(command)
+                time.sleep(0.35)
 
     def _get_session_id(self):
         """Get the session key for the TV connection.
