@@ -203,7 +203,7 @@ class LgNetCastClient(object):
             )
             for _ in range(abs(int(volume_difference))):
                 self.send_command(command)
-                time.sleep(0.35)
+                time.sleep(0.45)
 
     def _get_session_id(self):
         """Get the session key for the TV connection.
