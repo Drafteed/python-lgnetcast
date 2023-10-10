@@ -31,6 +31,7 @@ LG_HANDLE_MOUSE_MOVE = "HandleTouchMove"
 LG_HANDLE_MOUSE_CLICK = "HandleTouchClick"
 LG_HANDLE_TOUCH_WHEEL = "HandleTouchWheel"
 LG_HANDLE_CHANNEL_CHANGE = "HandleChannelChange"
+LG_CHANGE_INPUT_SOURCE = "ChangeInputSource"
 
 DEFAULT_PORT = 8080
 DEFAULT_TIMEOUT = 3
@@ -154,6 +155,15 @@ class LgNetCastClient(object):
             self._session,
             LG_HANDLE_KEY_INPUT,
             "<value>%s</value>" % command,
+        )
+        self._send_to_tv("command", message)
+
+    def change_input_source(self, type, index):
+        """Send change input source command to the TV."""
+        message = self.COMMAND % (
+            self._session,
+            LG_CHANGE_INPUT_SOURCE,
+            "<inputSourceType>%d</inputSourceType><inputSourceIdx>%d</inputSourceIdx>" % (type, index),
         )
         self._send_to_tv("command", message)
 
