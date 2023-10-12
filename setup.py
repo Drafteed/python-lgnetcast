@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='pylgnetcast',
-    version='0.3.7',
+    version='0.3.8',
     maintainer='Artem Draft',
     maintainer_email='artemon_93@mail.ru',
     description='Client for the LG Smart TV running NetCast 3 or 4.',
