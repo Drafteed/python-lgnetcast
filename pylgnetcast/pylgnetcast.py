@@ -158,6 +158,28 @@ class LgNetCastClient(object):
         )
         self._send_to_tv("command", message)
 
+    def query_device_info(self):
+        """Get model information about the TV."""
+        # We're using UDAP to retrieve this information, which requires a specific User-Agent.
+        # As self.HEADER is a class variable, we will make a copy to ensure we don't interfere
+        # with other instances 
+        try:
+            self.HEADER = {**self.HEADER, "User-Agent": "UDAP/2.0"}
+            response = self._send_to_tv("data", payload={"target": "rootservice.xml"})
+        finally:
+            # Remove the instance version of self.HEADER to restore original functionality
+            del self.HEADER 
+        if response.status_code != requests.codes.ok:
+            return None
+        data = response.text
+        tree = ElementTree.fromstring(data.encode("utf-8"))
+
+        return {
+            "uuid": tree.findtext("device/uuid"),
+            "model_name": tree.findtext("device/modelName"),
+            "friendly_name": tree.findtext("device/friendlyName")
+        }
+
     def change_input_source(self, type, index):
         """Send change input source command to the TV."""
         message = self.COMMAND % (
