@@ -261,7 +261,7 @@ class LgNetCastClient(object):
 
     def _send_to_tv(self, message_type, message=None, payload=None):
         """Send message of given type to the tv."""
-        if message_type != "command" and self.protocol == LG_PROTOCOL.HDCP:
+        if message_type == "command" and self.protocol == LG_PROTOCOL.HDCP:
             message_type = "dtv_wifirc"
         url = "%s%s" % (self.url, message_type)
         if message:
